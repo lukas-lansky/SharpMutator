@@ -8,6 +8,6 @@ namespace Lansky.SharpMutator.Mutators
     class StaticMutatorFactory : IMutatorFactory
     {
         public IList<IMutator> GetAllMutators()
-            => new List<IMutator> { new BinaryOpMutator(), new InequalityMutator() };
+            => new List<IMutator> { new BinaryOpMutator(), new InequalityMutator(), new ExceptionMutator() };
     }
 }

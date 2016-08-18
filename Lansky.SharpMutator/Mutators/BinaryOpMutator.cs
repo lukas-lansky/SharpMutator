@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Mono.Cecil.Cil;
+using Mono.Cecil;
 
 namespace Lansky.SharpMutator.Mutators
 {
@@ -7,7 +8,7 @@ namespace Lansky.SharpMutator.Mutators
     /// BinaryOpMutator replaces + for -, - for +,
     /// * for / and / for *.
     /// </summary>
-    public class BinaryOpMutator : IMutator
+    public class BinaryOpMutator : IOpCodeReplacingMutator
     {
         public ISet<OpCode> CodesToApply => new HashSet<OpCode> { OpCodes.Add, OpCodes.Sub, OpCodes.Mul, OpCodes.Div };
 

@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using Mono.Cecil.Cil;
+using Mono.Cecil;
 
 namespace Lansky.SharpMutator.Mutators
 {
     /// <summary>
     /// Inequality mutator replaces "greater" for "lesser" and vice versa.
     /// </summary>
-    public class InequalityMutator : IMutator
+    public class InequalityMutator : IOpCodeReplacingMutator
     {
         public ISet<OpCode> CodesToApply => new HashSet<OpCode> { OpCodes.Cgt, OpCodes.Clt };
 

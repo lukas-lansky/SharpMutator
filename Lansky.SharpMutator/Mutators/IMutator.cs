@@ -1,8 +1,19 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System.Collections.Generic;
 
 namespace Lansky.SharpMutator.Mutators
 {
+    public interface IComplexMutator : IMutator
+    {
+        bool Mutate(Instruction instr, MethodBody methodBody, AssemblyDefinition assembly);
+    }
+
+    public interface IOpCodeReplacingMutator : IMutator
+    {
+        bool Mutate(Instruction instr);
+    }
+
     /// <summary>
     /// Every implementation is a different way IL can
     /// be mutated. Every such mutator has a set of OpCodes
@@ -18,11 +29,5 @@ namespace Lansky.SharpMutator.Mutators
         /// List of instruction mutator can act upon.
         /// </summary>
         ISet<OpCode> CodesToApply { get; }
-
-        /// <summary>
-        /// Mutate the instruction.
-        /// </summary>
-        /// <returns>Was the instruction mutated?</returns>
-        bool Mutate(Instruction instr);
     }
 }

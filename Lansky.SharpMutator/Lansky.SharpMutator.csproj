@@ -74,6 +74,7 @@
     <Compile Include="Mutators\IMutator.cs" />
     <Compile Include="Mutators\BinaryOpMutator.cs" />
     <Compile Include="Mutators\IMutatorFactory.cs" />
+    <Compile Include="Mutators\ExceptionMutator.cs" />
     <Compile Include="Mutators\InequalityMutator.cs" />
     <Compile Include="Mutators\StaticMutatorFactory.cs" />
     <Compile Include="Program.cs" />

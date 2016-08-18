@@ -31,8 +31,6 @@ namespace Lansky.SharpMutator
             container
                 .Resolve<Run>()
                 .Process(new FileInfo(sutPath), new FileInfo(testPath));
-
-            Console.ReadLine();
         }
     }
 }

@@ -50,8 +50,8 @@ namespace Lansky.SharpMutator.Engine
                 FileName = runnerPath,
                 Arguments = "Lansky.SharpMutator.ExampleTest.dll",
                 WorkingDirectory = experimentPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
                 RedirectStandardInput = true
             };
 

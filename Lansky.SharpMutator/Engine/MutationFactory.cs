@@ -45,12 +45,17 @@ namespace Lansky.SharpMutator.Engine
             }
         }
 
-        public IEnumerable<Mutation> Mutate(MethodDefinition method, AssemblyDefinition loadedAssembly, IList<IMutator> mutators, int mutationId)
+        public IEnumerable<Mutation> Mutate(
+            MethodDefinition method, AssemblyDefinition loadedAssembly,
+            IList<IMutator> mutators, int mutationId)
         {
             var currentLine = -1;
             var currentFile = "";
-            foreach (var instr in method.Body.Instructions)
+
+            for (var instrI = 0; instrI < method.Body.Instructions.Count; instrI++)
             {
+                var instr = method.Body.Instructions[instrI];
+
                 _log.Info($"        {instr.SequencePoint?.StartLine ?? 0:0000} {instr}");
                 if (instr.SequencePoint != null)
                 {
@@ -58,27 +63,59 @@ namespace Lansky.SharpMutator.Engine
                     currentFile = instr.SequencePoint.Document.Url.Split('\\').LastOrDefault() ?? "";
                 }
 
-                foreach (var mutator in mutators.Where(m => m.CodesToApply.Contains(instr.OpCode)))
+                foreach (var mutator in mutators.Where(m => m.CodesToApply.Count == 0 || m.CodesToApply.Contains(instr.OpCode)))
                 {
-                    var originalInstrOpCode = instr.OpCode;
-
-                    _log.Info($"            Mutating using {mutator.GetType().Name}");
-                    var success = mutator.Mutate(instr);
-
-                    if (!success)
+                    if (mutator is IOpCodeReplacingMutator)
                     {
-                        continue;
+                        var originalInstrOpCode = instr.OpCode;
+
+                        _log.Info($"            Mutating using {mutator.GetType().Name}");
+                        var success = (mutator as IOpCodeReplacingMutator).Mutate(instr);
+
+                        if (!success)
+                        {
+                            continue;
+                        }
+
+                        var filePath = System.IO.Path.GetFullPath($"mutant-{mutationId++}.dll");
+
+                        _log.Info($"            Saving as mutant {mutationId}");
+                        loadedAssembly.Write(filePath);
+
+                        _log.Info($"            Restoring to original version");
+                        instr.OpCode = originalInstrOpCode;
+
+                        yield return new Mutation(method, new System.IO.FileInfo(filePath), mutator);
                     }
+                    else if (mutator is IComplexMutator)
+                    {
+                        var instructionBackup = method.Body.Instructions.ToList();
 
-                    var filePath = System.IO.Path.GetFullPath($"mutant-{mutationId++}.dll");
-                    
-                    _log.Info($"            Saving as mutant {mutationId}");
-                    loadedAssembly.Write(filePath);
-                    
-                    _log.Info($"            Restoring to original version");
-                    instr.OpCode = originalInstrOpCode;
+                        _log.Info($"            Mutating using {mutator.GetType().Name}");
+                        var success = (mutator as IComplexMutator).Mutate(instr, method.Body, loadedAssembly);
 
-                    yield return new Mutation(method, new System.IO.FileInfo(filePath), mutator);
+                        if (!success)
+                        {
+                            continue;
+                        }
+
+                        var filePath = System.IO.Path.GetFullPath($"mutant-{mutationId++}.dll");
+
+                        _log.Info($"            Saving as mutant {mutationId}");
+                        loadedAssembly.Write(filePath);
+
+                        _log.Info($"            Restoring to original version");
+                        while (method.Body.Instructions.Any())
+                        {
+                            method.Body.Instructions.RemoveAt(0);
+                        }
+                        foreach (var instrBackup in instructionBackup)
+                        {
+                            method.Body.Instructions.Add(instrBackup);
+                        }
+
+                        yield return new Mutation(method, new System.IO.FileInfo(filePath), mutator);
+                    }
                 }
             }
         }
